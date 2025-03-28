@@ -1,57 +1,91 @@
-#include <stdio.h>
+#include <stdio.h> 
 // Desafio Batalha Naval
 // Tema 4 - Jogo de Batalha Naval
-// Nível novato.
-int main() {
-    int TAMANHO = 10;  // Tamanho do tabuleiro
-    int TAM_NAVIO = 3; // Tamanho dos navios
-    int tabuleiro[TAMANHO][TAMANHO];
+// Nível aventureiro.
+#define TAMANHO 10   // Define o tamanho do tabuleiro como uma matriz 10x10
+#define TAM_NAVIO 3  // Define o tamanho dos navios como sendo de 3 posições
 
-    // Inicializando todas as posições como 0 (mar)
-    for (int i = 0; i < TAMANHO; i++) {          // Laço para percorrer todas as linhas do tabuleiro
-        for (int j = 0; j < TAMANHO; j++) {      // Laço para percorrer todas as colunas de cada linha
-            tabuleiro[i][j] = 0;                // Preenche a posição com 0 (mar)
+// Função para inicializar o tabuleiro preenchendo todas as posições com 0 (representando água)
+void inicializarTabuleiro(int tabuleiro[TAMANHO][TAMANHO]) {
+    for (int i = 0; i < TAMANHO; i++) {
+        for (int j = 0; j < TAMANHO; j++) {
+            tabuleiro[i][j] = 0;
         }
     }
+}
 
-    // Coordenadas fixas para os navios
-    int linhaH = 2, colunaH = 4; // O navio horizontal começa na posição (2,4)
-    int linhaV = 5, colunaV = 7; // O navio vertical começa na posição (5,7)
-
-    // Posicionando o navio horizontal
-    for (int i = 0; i < TAM_NAVIO; i++) {  // Loop para colocar o navio horizontal
-        tabuleiro[linhaH][colunaH + i] = 3; // Coloca o valor 3 (representando o navio) nas posições horizontais
+// Função que verifica se um navio pode ser posicionado sem sair dos limites ou sobrepor outro navio
+int podePosicionar(int tabuleiro[TAMANHO][TAMANHO], int linha, int coluna, int deltaLinha, int deltaColuna) {
+    for (int i = 0; i < TAM_NAVIO; i++) {
+        int novaLinha = linha + i * deltaLinha;
+        int novaColuna = coluna + i * deltaColuna;
+        
+        // Verifica se o navio está dentro dos limites e se não sobrepõe outro navio
+        if (novaLinha < 0 || novaLinha >= TAMANHO || novaColuna < 0 || novaColuna >= TAMANHO || tabuleiro[novaLinha][novaColuna] != 0) {
+            return 0; // Retorna falso se não puder posicionar o navio
+        }
     }
+    return 1; // Retorna verdadeiro se for possível posicionar o navio
+}
 
-    // Posicionando o navio vertical
-    for (int i = 0; i < TAM_NAVIO; i++) {  // Loop para colocar o navio vertical
-        tabuleiro[linhaV + i][colunaV] = 3; // Coloca o valor 3 (representando o navio) nas posições verticais
+// Função que posiciona um navio no tabuleiro atribuindo o valor 3 às posições ocupadas
+void posicionarNavio(int tabuleiro[TAMANHO][TAMANHO], int linha, int coluna, int deltaLinha, int deltaColuna) {
+    for (int i = 0; i < TAM_NAVIO; i++) {
+        tabuleiro[linha + i * deltaLinha][coluna + i * deltaColuna] = 3;
     }
+}
 
-    // Exibindo o tabuleiro atualizado
-    printf("\n  BATALHA NAVAL - TABULEIRO\n");  // Cabeçalho
+// Função que exibe o tabuleiro no console, formatando a saída para melhor visualização
+void imprimirTabuleiro(int tabuleiro[TAMANHO][TAMANHO]) {
+    printf("\n  BATALHA NAVAL - TABULEIRO\n");
     printf("  ------------------------\n");
-
-    // Impressão do índice das colunas (A a J)
     printf("    ");
-    for (int j = 0; j < TAMANHO; j++) {  // Laço para imprimir as letras das colunas
-        printf("%c ", 'A' + j);  // 'A' é o código ASCII para a letra A, e j é o índice que adiciona a sequência
+    
+    // Impressão dos índices das colunas (A a J)
+    for (int j = 0; j < TAMANHO; j++) {
+        printf("%c ", 'A' + j);
     }
     printf("\n");
-
-    // Imprime o tabuleiro linha por linha
-    for (int i = 0; i < TAMANHO; i++) {  // Laço para percorrer todas as linhas
-        printf("%d | ", i); // Índice da linha, no formato "0 |"
-        for (int j = 0; j < TAMANHO; j++) {  // Laço para percorrer todas as colunas de cada linha
-            if (tabuleiro[i][j] == 3) {  // Se a posição for 3, significa que é parte de um navio
-                printf("3 ");  // Imprime o ícone do navio
-            } else {
-                printf("0 ");  // Se for 0, significa água, então imprime o ícone de água
-            }
+    
+    // Impressão do tabuleiro linha por linha
+    for (int i = 0; i < TAMANHO; i++) {
+        printf("%d | ", i);
+        for (int j = 0; j < TAMANHO; j++) {
+            printf("%d ", tabuleiro[i][j]);
         }
-        printf("|\n");  // Fecha a linha
+        printf("|\n");
     }
-    printf("  ------------------------\n");  // Finaliza a borda do tabuleiro
+    printf("  ------------------------\n");
+}
 
-    return 0;  
+
+int main() {
+    int tabuleiro[TAMANHO][TAMANHO]; // Declaração da matriz que representa o tabuleiro
+    inicializarTabuleiro(tabuleiro); // Inicializa o tabuleiro com valores 0
+    
+    // Matriz contendo as coordenadas iniciais e direções dos quatro navios
+    int navios[4][4] = {
+        {2, 4, 0, 1},  // Navio posicionado horizontalmente
+        {5, 7, 1, 0},  // Navio posicionado verticalmente
+        {1, 1, 1, 1},  // Navio posicionado na diagonal 1
+        {3, 6, 1, -1}  // Navio posicionado na diagonal 2
+    };
+    
+    // Loop para posicionar os navios no tabuleiro
+    for (int i = 0; i < 4; i++) {
+        int linha = navios[i][0];
+        int coluna = navios[i][1];
+        int deltaLinha = navios[i][2];
+        int deltaColuna = navios[i][3];
+        
+        // Verifica se o navio pode ser posicionado antes de colocá-lo no tabuleiro
+        if (podePosicionar(tabuleiro, linha, coluna, deltaLinha, deltaColuna)) {
+            posicionarNavio(tabuleiro, linha, coluna, deltaLinha, deltaColuna);
+        } else {
+            printf("Erro ao posicionar navio %d!\n", i + 1);
+        }
+    }
+    
+    imprimirTabuleiro(tabuleiro); // Exibe o tabuleiro final com os navios 
+    return 0; 
 }
