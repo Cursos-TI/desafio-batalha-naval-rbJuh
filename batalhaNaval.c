@@ -1,91 +1,130 @@
-#include <stdio.h> 
+#include <stdio.h>
 // Desafio Batalha Naval
 // Tema 4 - Jogo de Batalha Naval
-// Nível aventureiro.
-#define TAMANHO 10   // Define o tamanho do tabuleiro como uma matriz 10x10
-#define TAM_NAVIO 3  // Define o tamanho dos navios como sendo de 3 posições
+// Nível mestre.
+#define TAMANHO_TABULEIRO 10  // Tabuleiro inicial 10x10
+#define TAMANHO_HABILIDADE 7  // Tabuleiro da habilidade 7x7
+#define NAVIO 3     // Representa um navio no tabuleiro
+#define HABILIDADE_CONE 5 // Representa a área afetada pela habilidade Cone
+#define HABILIDADE_CRUZ 6 // Representa a área afetada pela habilidade Cruz
+#define HABILIDADE_OCTA 7 // Representa a área afetada pela habilidade Octaedro
 
-// Função para inicializar o tabuleiro preenchendo todas as posições com 0 (representando água)
-void inicializarTabuleiro(int tabuleiro[TAMANHO][TAMANHO]) {
-    for (int i = 0; i < TAMANHO; i++) {
-        for (int j = 0; j < TAMANHO; j++) {
-            tabuleiro[i][j] = 0;
+// Função para inicializar o tabuleiro com água (0)
+void inicializarTabuleiro(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
+    for (int i = 0; i < TAMANHO_TABULEIRO; i++) {
+        for (int j = 0; j < TAMANHO_TABULEIRO; j++) {
+            tabuleiro[i][j] = 0; // Definindo água (0)
         }
     }
 }
 
-// Função que verifica se um navio pode ser posicionado sem sair dos limites ou sobrepor outro navio
-int podePosicionar(int tabuleiro[TAMANHO][TAMANHO], int linha, int coluna, int deltaLinha, int deltaColuna) {
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        int novaLinha = linha + i * deltaLinha;
-        int novaColuna = coluna + i * deltaColuna;
-        
-        // Verifica se o navio está dentro dos limites e se não sobrepõe outro navio
-        if (novaLinha < 0 || novaLinha >= TAMANHO || novaColuna < 0 || novaColuna >= TAMANHO || tabuleiro[novaLinha][novaColuna] != 0) {
-            return 0; // Retorna falso se não puder posicionar o navio
+// Função para posicionar um navio no tabuleiro
+void posicionarNavio(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO], int linha, int coluna) {
+    if (linha >= 0 && linha < TAMANHO_TABULEIRO && coluna >= 0 && coluna < TAMANHO_TABULEIRO) {
+        tabuleiro[linha][coluna] = NAVIO; // Posicionando o navio
+    }
+}
+
+// Função para aplicar a habilidade Cone 
+void aplicarCone(int tabuleiro[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE], int origemX, int origemY) {
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (int j = origemY - i; j <= origemY + i; j++) {
+            if (j >= 0 && j < TAMANHO_HABILIDADE && i + origemX < TAMANHO_HABILIDADE) {
+                tabuleiro[i + origemX][j] = HABILIDADE_CONE; // Marca a área afetada pelo Cone
+            }
         }
     }
-    return 1; // Retorna verdadeiro se for possível posicionar o navio
 }
 
-// Função que posiciona um navio no tabuleiro atribuindo o valor 3 às posições ocupadas
-void posicionarNavio(int tabuleiro[TAMANHO][TAMANHO], int linha, int coluna, int deltaLinha, int deltaColuna) {
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        tabuleiro[linha + i * deltaLinha][coluna + i * deltaColuna] = 3;
+// Função para aplicar a habilidade Cruz 
+void aplicarCruz(int tabuleiro[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE], int origemX, int origemY) {
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        tabuleiro[origemX][i] = HABILIDADE_CRUZ; // Marca a linha da cruz
+        tabuleiro[i][origemY] = HABILIDADE_CRUZ; // Marca a coluna da cruz
     }
 }
 
-// Função que exibe o tabuleiro no console, formatando a saída para melhor visualização
-void imprimirTabuleiro(int tabuleiro[TAMANHO][TAMANHO]) {
-    printf("\n  BATALHA NAVAL - TABULEIRO\n");
+// Função para aplicar a habilidade Octaedro 
+void aplicarOctaedro(int tabuleiro[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE], int origemX, int origemY) {
+    // Laço para desenhar o formato de octaedro no tabuleiro
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (int j = 0; j < TAMANHO_HABILIDADE; j++) {
+            // Condição para o formato de octaedro
+            if ((i - origemX) + (j - origemY) <= 3) {
+                tabuleiro[i][j] = HABILIDADE_OCTA; // Marca a área afetada pelo Octaedro
+            }
+        }
+    }
+}
+
+// Função para imprimir o tabuleiro da habilidade 
+void imprimirTabuleiroHabilidade(int tabuleiro[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE]) {
+    for (int i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (int j = 0; j < TAMANHO_HABILIDADE; j++) {
+            if (tabuleiro[i][j] == 0) {
+                printf("0 "); // Água
+            } else {
+                printf("%d ", tabuleiro[i][j]); // Exibe o número da habilidade
+            }
+        }
+        printf("\n");
+    }
+}
+
+// Função para imprimir o tabuleiro inicial com a estrutura solicitada
+void imprimirTabuleiroInicial(int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO]) {
+    printf(" BATALHA NAVAL - TABULEIRO\n");
     printf("  ------------------------\n");
-    printf("    ");
-    
-    // Impressão dos índices das colunas (A a J)
-    for (int j = 0; j < TAMANHO; j++) {
-        printf("%c ", 'A' + j);
-    }
-    printf("\n");
-    
-    // Impressão do tabuleiro linha por linha
-    for (int i = 0; i < TAMANHO; i++) {
-        printf("%d | ", i);
-        for (int j = 0; j < TAMANHO; j++) {
-            printf("%d ", tabuleiro[i][j]);
+    printf("    A B C D E F G H I J \n");
+    for (int i = 0; i < TAMANHO_TABULEIRO; i++) {
+        printf("%d | ", i);  // Exibe a linha
+        for (int j = 0; j < TAMANHO_TABULEIRO; j++) {
+            if (tabuleiro[i][j] == 0) {
+                printf("0 "); // Água
+            } else if (tabuleiro[i][j] == NAVIO) {
+                printf("N "); // Navio
+            }
         }
         printf("|\n");
     }
     printf("  ------------------------\n");
 }
 
-
 int main() {
-    int tabuleiro[TAMANHO][TAMANHO]; // Declaração da matriz que representa o tabuleiro
-    inicializarTabuleiro(tabuleiro); // Inicializa o tabuleiro com valores 0
+    // Criando o tabuleiro 10x10
+    int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO];
+    inicializarTabuleiro(tabuleiro);
+    // Colocando os navios no tabuleiro
+    posicionarNavio(tabuleiro, 1, 1); 
+    posicionarNavio(tabuleiro, 2, 2); 
+    posicionarNavio(tabuleiro, 2, 4); 
+    posicionarNavio(tabuleiro, 3, 3); 
+    posicionarNavio(tabuleiro, 4, 5); 
+    posicionarNavio(tabuleiro, 5, 4); 
+    posicionarNavio(tabuleiro, 5, 6); 
+    posicionarNavio(tabuleiro, 6, 7); 
+    posicionarNavio(tabuleiro, 7, 7);
+
+    // Exibindo o tabuleiro inicial
+    imprimirTabuleiroInicial(tabuleiro);
     
-    // Matriz contendo as coordenadas iniciais e direções dos quatro navios
-    int navios[4][4] = {
-        {2, 4, 0, 1},  // Navio posicionado horizontalmente
-        {5, 7, 1, 0},  // Navio posicionado verticalmente
-        {1, 1, 1, 1},  // Navio posicionado na diagonal 1
-        {3, 6, 1, -1}  // Navio posicionado na diagonal 2
-    };
+    // Exibindo o tabuleiro com Cone 
+    int tabuleiroCone[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE] = {0};
+    aplicarCone(tabuleiroCone, 3, 3); 
+    printf("\nTabuleiro cone:\n");
+    imprimirTabuleiroHabilidade(tabuleiroCone); // Imprime a habilidade Cone
     
-    // Loop para posicionar os navios no tabuleiro
-    for (int i = 0; i < 4; i++) {
-        int linha = navios[i][0];
-        int coluna = navios[i][1];
-        int deltaLinha = navios[i][2];
-        int deltaColuna = navios[i][3];
-        
-        // Verifica se o navio pode ser posicionado antes de colocá-lo no tabuleiro
-        if (podePosicionar(tabuleiro, linha, coluna, deltaLinha, deltaColuna)) {
-            posicionarNavio(tabuleiro, linha, coluna, deltaLinha, deltaColuna);
-        } else {
-            printf("Erro ao posicionar navio %d!\n", i + 1);
-        }
-    }
+    // Exibindo o tabuleiro com Cruz (7x7)
+    int tabuleiroCruz[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE] = {0};
+    aplicarCruz(tabuleiroCruz, 3, 3); 
+    printf("\nTabuleiro cruz:\n");
+    imprimirTabuleiroHabilidade(tabuleiroCruz); // Imprime a habilidade Cruz
     
-    imprimirTabuleiro(tabuleiro); // Exibe o tabuleiro final com os navios 
-    return 0; 
+    // Exibindo o tabuleiro com Octaedro (7x7)
+    int tabuleiroOctaedro[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE] = {0};
+    aplicarOctaedro(tabuleiroOctaedro, 3, 3); 
+    printf("\nTabuleiro octaedro:\n");
+    imprimirTabuleiroHabilidade(tabuleiroOctaedro); // Imprime a habilidade Octaedro
+    
+    return 0;
 }
